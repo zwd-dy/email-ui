@@ -14,7 +14,7 @@ const axios = Axios.create({
 axios.interceptors.request.use(
   config => {
     const token = sessionStorage.getItem('access_token')
-    config.headers.Authorization = (token ? 'Bearer ' + token : '')
+    config.headers.Authorization = (token ?  token : '')
     if (config.type) {
       switch (config.type) {
         case 'FORM-DATA':

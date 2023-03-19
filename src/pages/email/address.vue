@@ -123,7 +123,7 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
 
-        <q-card-section class="content">
+        <q-card-section class="my-content">
           <q-form
             ref="form"
             class="q-gutter-md"
@@ -362,9 +362,8 @@ export default {
   td:nth-child(2)
     background-color: #c1f4cd !important
 
-.content
+.my-content
   width: 30rem
-  //height: 30rem
   padding: 0.5rem
   box-sizing: border-box
   overflow: hidden
