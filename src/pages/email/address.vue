@@ -202,7 +202,7 @@ export default {
         name: null
       },
       dialog: {
-        addContact: false
+        addContact: false,
       },
       addressBook: {
         name: '',

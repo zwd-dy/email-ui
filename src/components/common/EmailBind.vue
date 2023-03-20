@@ -49,7 +49,8 @@
 
                 <div style="float: right">
                   <q-btn flat rounded color="black" label="取消" v-close-popup/>
-                  <q-btn @click="" unelevated rounded color="primary" label="确定" class="q-ml-sm"/>
+                  <q-btn @click="unBindBtn(binds[i])" unelevated color="red" label="解绑" class="q-ml-sm"/>
+                  <q-btn @click="updateBindBtn(binds[i])" unelevated color="primary" label="保存更改" class="q-ml-sm"/>
                 </div>
               </q-form>
 
@@ -125,7 +126,7 @@
 <script>
 import { bindList, addBind, deleteBind, updateBind } from 'src/api/BindApi'
 import { platformList } from 'src/api/PlatformApi'
-import { addContact, addGroup } from 'src/api/ContactsApi'
+import { addContact, addGroup, batchDelContact } from 'src/api/ContactsApi'
 
 export default {
   name: 'EmailBind',
@@ -184,7 +185,40 @@ export default {
           })
         }
       })
-
+    },
+    // 解绑
+    unBindBtn (bind) {
+      this.$q.dialog({
+        title: '提示',
+        message: '解绑邮箱 ' + bind.emailUser + ' 吗？',
+        cancel: true,
+        persistent: true,
+        ok: {
+          flat: true,
+          textColor: 'red'
+        }
+      }).onOk(() => {
+        deleteBind(
+          bind.id
+        ).then(res => {
+          if (res.data.type === 'success') {
+            this.$success('解绑成功')
+            this.getBindList()
+          } else {
+            this.$error(res)
+          }
+        })
+      })
+    },
+    updateBindBtn (bind) {
+      updateBind(bind).then(res => {
+        if (res.data.type === 'success') {
+          this.$success('保存成功')
+          this.getBindList()
+        } else {
+          this.$error(res)
+        }
+      })
     }
   },
   created () {

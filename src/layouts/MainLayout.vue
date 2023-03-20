@@ -29,11 +29,15 @@
     <!-- HEADER END -->
 
     <!-- slideBar START -->
+<!--    <div style="">-->
+<!--      <q-btn unelevated rounded color="blue" icon="drive_file_rename_outline" size="md" label="写邮件"/>-->
+<!--    </div>-->
     <q-drawer v-model="leftDrawerOpen"
               show-if-above
               bordered
               content-class="bg-white"
               :width="240">
+
       <base-menu/>
     </q-drawer>
     <!-- slideBar END -->
@@ -49,7 +53,6 @@
 
     </q-page-container>
     <!-- container END -->
-
   </q-layout>
 </template>
 
