@@ -13,54 +13,54 @@
 
     <q-card-section class="send-content">
       <q-scroll-area style="height: 40em; max-width: 48rem;">
-      <q-form
-        ref="form"
-        class="q-gutter-md"
-      >
-        <q-select
-          dense
-          hide-dropdown-icon
-          v-model="mail.recipient"
-          use-input
-          use-chips
-          multiple
-          input-debounce="0"
-          @new-value="createValue"
-          label="收件人"
+        <q-form
+          ref="form"
+          class="q-gutter-md"
         >
-          <template v-slot:append>
-            <q-btn round dense flat icon="add" @click="dialog.contactsList = true;getDataList();getGroupList()"/>
-          </template>
-        </q-select>
+          <q-select
+            dense
+            hide-dropdown-icon
+            v-model="mail.recipient"
+            use-input
+            use-chips
+            multiple
+            input-debounce="0"
+            @new-value="createValue"
+            label="收件人"
+          >
+            <template v-slot:append>
+              <q-btn round dense flat icon="add" @click="dialog.contactsList = true;getDataList();getGroupList()"/>
+            </template>
+          </q-select>
 
-        <q-input dense v-model="mail.subject" label="主题"/>
+          <q-input dense v-model="mail.subject" label="主题"/>
 
-        <q-uploader
-          :url="uploadPath"
-          label="附件上传"
-          multiple
-          bordered
-          :headers="uploader.headers"
-          field-name="file"
-          @uploaded="uploadedFun"
-          style="width: 30em"
-        />
+          <q-uploader
+            :url="uploadPath"
+            label="附件上传"
+            multiple
+            bordered
+            :headers="uploader.headers"
+            field-name="file"
+            @uploaded="uploadedFun"
+            style="width: 30em"
+          />
 
-        <Toolbar
-          style="border-bottom: 1px solid #ccc"
-          :editor="editor"
-          :defaultConfig="toolbarConfig"
-          :mode="mode"
-        />
-        <Editor
-          style="height: 500px; overflow-y: hidden;"
-          v-model="html"
-          :defaultConfig="editorConfig"
-          :mode="mode"
-          @onCreated="onCreated"
-        />
+          <Toolbar
+            style="border-bottom: 1px solid #ccc"
+            :editor="editor"
+            :defaultConfig="toolbarConfig"
+            :mode="mode"
+          />
+          <Editor
+            style="height: 500px; overflow-y: hidden;"
+            v-model="html"
+            :defaultConfig="editorConfig"
+            :mode="mode"
+            @onCreated="onCreated"
+          />
 
-      </q-form>
+        </q-form>
       </q-scroll-area>
     </q-card-section>
 
@@ -152,7 +152,7 @@ export default {
   },
   data () {
     return {
-      uploadPath:Vue.prototype.$baseURL+'file/upload',
+      uploadPath: Vue.prototype.$baseURL + 'file/upload',
       mail: {
         recipient: null,
         subject: null,
@@ -165,13 +165,13 @@ export default {
       html: '<p>hello</p>',
       editorConfig: {
         placeholder: '请输入内容...',
-        MENU_CONF:{},
+        MENU_CONF: {},
       },
       toolbarConfig: {},
       mode: 'default', // or 'simple'
       addressBooks: [],
       groupList: [],
-      binds:[],
+      binds: [],
       pagination: {
         sortBy: 'desc',
         descending: false,
@@ -200,10 +200,10 @@ export default {
       searchAddressBook: {
         name: null
       },
-      uploader:{
-        headers:[{
+      uploader: {
+        headers: [{
           name: 'Authorization',
-          value: sessionStorage.getItem("access_token")
+          value: sessionStorage.getItem('access_token')
         }]
       }
     }
@@ -293,9 +293,9 @@ export default {
     },
 
     // 获取绑定邮箱
-    getBinds(){
-      bindList().then(res=>{
-        if(res.data.type === 'success'){
+    getBinds () {
+      bindList().then(res => {
+        if (res.data.type === 'success') {
           this.binds = res.data.data
         }
       })
@@ -322,30 +322,49 @@ export default {
       }
 
     },
-    uploadedFun(field){
+    uploadedFun (field) {
       var res = JSON.parse(field.xhr.response)
+      if (res.data.type === 'success') {
+        //TODO
+      } else {
+        this.$error(res)
+      }
 
     },
   },
   created () {
+    var that = this
     this.getBinds()
     this.editorConfig.MENU_CONF['uploadImage'] = {
-      server: Vue.prototype.$baseURL+'file/upload',
+      server: Vue.prototype.$baseURL + 'file/upload',
       fieldName: 'file',
 
       // 单个文件的最大体积限制，默认为 2M
       maxFileSize: 3 * 1024 * 1024, // 3M
 
       headers: {
-        Authorization: sessionStorage.getItem("access_token"),
+        Authorization: sessionStorage.getItem('access_token'),
       },
 
-      //   customInsert(res, insertFn) {
-      //   // res 即服务端的返回结果
-      //
-      //   // 从 res 中找到 url alt href ，然后插入图片
-      //   insertFn(url, alt, href)
-      // },
+      customInsert (res, insertFn) {
+        //TODO
+        // var domain = location.href         // 正式环境
+        var domain = 'http://localhost:8081/static' // 开发环境
+        var url = domain + res.data.relativePath
+
+        // 从 res 中找到 url alt href ，然后插入图片
+        insertFn(url, res.name, url)
+      },
+
+      // 上传成功
+      onSuccess(file, res) {
+        var imgId = res.data.id
+
+      },
+      // 单个文件上传失败
+      onFailed (file, res) {
+        this.$error(res)
+      },
 
     }
   }
