@@ -1,5 +1,6 @@
-<template>
+<template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
   <q-card style="max-width: 60rem">
+
     <q-bar>
       <q-item-label>新邮件</q-item-label>
 
@@ -11,6 +12,7 @@
     </q-bar>
 
     <q-card-section class="send-content">
+      <q-scroll-area style="height: 40em; max-width: 48rem;">
       <q-form
         ref="form"
         class="q-gutter-md"
@@ -33,6 +35,17 @@
 
         <q-input dense v-model="mail.subject" label="主题"/>
 
+        <q-uploader
+          :url="uploadPath"
+          label="附件上传"
+          multiple
+          bordered
+          :headers="uploader.headers"
+          field-name="file"
+          @uploaded="uploadedFun"
+          style="width: 30em"
+        />
+
         <Toolbar
           style="border-bottom: 1px solid #ccc"
           :editor="editor"
@@ -48,6 +61,7 @@
         />
 
       </q-form>
+      </q-scroll-area>
     </q-card-section>
 
     <q-card-section class="q-pt-none">
@@ -64,6 +78,7 @@
         <q-btn icon="drafts" color="white" text-color="black" label="存草稿"/>
       </div>
     </q-card-section>
+
 
     <!--    选择联系人模态窗口-->
     <q-dialog v-model="dialog.contactsList">
@@ -119,7 +134,6 @@
 
       </q-card>
     </q-dialog>
-
   </q-card>
 </template>
 
@@ -128,6 +142,7 @@
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { listAddressGroup, pageListContact } from 'src/api/ContactsApi'
 import { bindList } from 'src/api/BindApi'
+import Vue from 'vue'
 
 export default {
   name: 'SendMail',
@@ -137,6 +152,7 @@ export default {
   },
   data () {
     return {
+      uploadPath:Vue.prototype.$baseURL+'file/upload',
       mail: {
         recipient: null,
         subject: null,
@@ -147,7 +163,10 @@ export default {
       },
       editor: null,
       html: '<p>hello</p>',
-      editorConfig: { placeholder: '请输入内容...' },
+      editorConfig: {
+        placeholder: '请输入内容...',
+        MENU_CONF:{},
+      },
       toolbarConfig: {},
       mode: 'default', // or 'simple'
       addressBooks: [],
@@ -181,6 +200,12 @@ export default {
       searchAddressBook: {
         name: null
       },
+      uploader:{
+        headers:[{
+          name: 'Authorization',
+          value: sessionStorage.getItem("access_token")
+        }]
+      }
     }
   },
   methods: {
@@ -296,10 +321,33 @@ export default {
         this.mail.recipient = modelValue
       }
 
-    }
+    },
+    uploadedFun(field){
+      var res = JSON.parse(field.xhr.response)
+
+    },
   },
   created () {
     this.getBinds()
+    this.editorConfig.MENU_CONF['uploadImage'] = {
+      server: Vue.prototype.$baseURL+'file/upload',
+      fieldName: 'file',
+
+      // 单个文件的最大体积限制，默认为 2M
+      maxFileSize: 3 * 1024 * 1024, // 3M
+
+      headers: {
+        Authorization: sessionStorage.getItem("access_token"),
+      },
+
+      //   customInsert(res, insertFn) {
+      //   // res 即服务端的返回结果
+      //
+      //   // 从 res 中找到 url alt href ，然后插入图片
+      //   insertFn(url, alt, href)
+      // },
+
+    }
   }
 }
 </script>
