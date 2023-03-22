@@ -20,30 +20,33 @@
           <q-select
             dense
             hide-dropdown-icon
-            v-model="mail.recipient"
+            v-model="mail.recipients"
             use-input
             use-chips
             multiple
             input-debounce="0"
             @new-value="createValue"
             label="收件人"
+            :rules="[ val => val && val.length > 0 || '请输入收件人邮箱，多个用小写;隔开，回车确认']"
           >
             <template v-slot:append>
               <q-btn round dense flat icon="add" @click="dialog.contactsList = true;getDataList();getGroupList()"/>
             </template>
           </q-select>
 
-          <q-input dense v-model="mail.subject" label="主题"/>
+          <q-input dense v-model="mail.subject" label="主题" :rules="[ val => val && val.length > 0 || '请输入主题']"/>
 
           <q-uploader
             :url="uploadPath"
             label="附件上传"
+            color="grey-6"
             multiple
             bordered
             :headers="uploader.headers"
             field-name="file"
             @uploaded="uploadedFun"
-            style="width: 30em"
+            @removed="removeFun"
+            style="width: 30em;"
           />
 
           <Toolbar
@@ -54,7 +57,7 @@
           />
           <Editor
             style="height: 500px; overflow-y: hidden;"
-            v-model="html"
+            v-model="mail.content"
             :defaultConfig="editorConfig"
             :mode="mode"
             @onCreated="onCreated"
@@ -72,8 +75,9 @@
                   option-label="emailUser"
                   emit-value
                   map-options
+                  :rules="[ val => val && val.length > 0 || '请选择发件邮箱']"
         />
-        <q-btn icon="send" color="primary" label="发送"/>
+        <q-btn @click="sendMailBtn" icon="send" color="primary" label="发送"/>
         <q-btn icon="timer" color="white" text-color="black" label="定时发送"/>
         <q-btn icon="drafts" color="white" text-color="black" label="存草稿"/>
       </div>
@@ -143,6 +147,7 @@ import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { listAddressGroup, pageListContact } from 'src/api/ContactsApi'
 import { bindList } from 'src/api/BindApi'
 import Vue from 'vue'
+import { sendMailApi } from 'src/api/EmailApi'
 
 export default {
   name: 'SendMail',
@@ -154,15 +159,17 @@ export default {
     return {
       uploadPath: Vue.prototype.$baseURL + 'file/upload',
       mail: {
-        recipient: null,
+        recipients: null,
         subject: null,
         from: null,
+        content: '<p>hello</p>',
+        fileId: [],
       },
+      uploadImgs: [],
       dialog: {
         contactsList: false
       },
       editor: null,
-      html: '<p>hello</p>',
       editorConfig: {
         placeholder: '请输入内容...',
         MENU_CONF: {},
@@ -222,7 +229,7 @@ export default {
           })
 
         done(null)
-        this.mail.recipient = modelValue
+        this.mail.recipients = modelValue
       }
     },
     onCreated (editor) {
@@ -245,8 +252,10 @@ export default {
           'insertTable',
           'bgColor',
           'insertLink',
-          'color'
-        ]
+          'color',
+          'editImage'
+        ],
+
       }
     },
     onRequest (props) {
@@ -307,7 +316,7 @@ export default {
       this.selected.forEach(item => {
         val += ';' + item.emailAddress
       })
-      // this.mail.recipient = str
+
       if (val.length > 0) {
         const modelValue = [].slice()
 
@@ -318,23 +327,57 @@ export default {
           .forEach(v => {
             modelValue.push(v)
           })
-        this.mail.recipient = modelValue
+        this.mail.recipients = modelValue
       }
 
     },
     uploadedFun (field) {
       var res = JSON.parse(field.xhr.response)
-      if (res.data.type === 'success') {
-        //TODO
+      if (res.type === 'success') {
+        this.mail.fileId.push(res.data.id)
+        console.log(this.mail.fileId)
       } else {
         this.$error(res)
       }
 
     },
+    removeFun (file) {
+      var newFileId = []
+      file.forEach(f => {
+        var res = JSON.parse(f.xhr.response)
+        console.log('file', res)
+        for (let i = 0; i < this.mail.fileId.length; i++) {
+          if (this.mail.fileId[i] != res.data.id) {
+            newFileId.push(this.mail.fileId[i])
+          }
+        }
+      })
+      console.log(newFileId)
+      this.mail.fileId = newFileId
+    },
+
+    // 发送邮件
+    sendMailBtn () {
+      this.sendMail();
+    },
+
+    // 构建发邮件请求
+    sendMail () {
+      sendMailApi(this.mail).then(res => {
+
+      })
+    }
+
   },
   created () {
     var that = this
     this.getBinds()
+    this.editorConfig.hoverbarKeys = {
+      'image': {
+        // 清空 image 元素的 hoverbar
+        menuKeys: ['imageWidth30', 'imageWidth50', 'imageWidth100', 'deleteImage'],
+      }
+    }
     this.editorConfig.MENU_CONF['uploadImage'] = {
       server: Vue.prototype.$baseURL + 'file/upload',
       fieldName: 'file',
@@ -353,13 +396,14 @@ export default {
         var url = domain + res.data.relativePath
 
         // 从 res 中找到 url alt href ，然后插入图片
-        insertFn(url, res.name, url)
+        insertFn(url, res.data.id)
       },
 
       // 上传成功
-      onSuccess(file, res) {
+      onSuccess (file, res) {
         var imgId = res.data.id
-
+        // that.mail.imgFileId.push(imgId)
+        // console.log("img",that.mail.imgFileId)
       },
       // 单个文件上传失败
       onFailed (file, res) {
