@@ -10,4 +10,20 @@ export function sendMailApi (obj) {
   })
 }
 
+export function pageListEmail (param) {
+  return _axios({
+    url: Vue.prototype.$PUBLIC_PATH + 'email/pageList',
+    method: 'get',
+    responseType: 'json',
+    params: param
+  })
+}
 
+export function delMail (obj) {
+  return _axios({
+    url: Vue.prototype.$PUBLIC_PATH + 'email/delete',
+    method: 'delete',
+    responseType: 'json',
+    data: obj
+  })
+}

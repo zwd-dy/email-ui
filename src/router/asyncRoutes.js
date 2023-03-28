@@ -15,17 +15,17 @@ const asyncRoutesChildren = [
     },
     component: () => import('../pages/home/home.vue')
   },
-  {
-    path: '/send',
-    name: 'send',
-    meta: {
-      roles: ['user', 'admin'],
-      title: '写信',
-      icon: 'send',
-      keepAlive: true
-    },
-    component: () => import('../pages/email/send.vue')
-  },
+  // {
+  //   path: '/send',
+  //   name: 'send',
+  //   meta: {
+  //     roles: ['user', 'admin'],
+  //     title: '写信',
+  //     icon: 'send',
+  //     keepAlive: true
+  //   },
+  //   component: () => import('../pages/email/send.vue')
+  // },
   {
     path: '/address',
     name: 'address',
@@ -36,6 +36,17 @@ const asyncRoutesChildren = [
       keepAlive: true
     },
     component: () => import('../pages/email/address.vue')
+  },
+  {
+    path: '/receive',
+    name: 'receive',
+    meta: {
+      roles: ['user', 'admin'],
+      title: '收件箱',
+      icon: 'markunread_mailbox',
+      keepAlive: true
+    },
+    component: () => import('../pages/email/receive.vue')
   },
   {
     path: 'async-router',

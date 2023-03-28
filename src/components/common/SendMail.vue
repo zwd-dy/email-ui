@@ -392,7 +392,7 @@ export default {
       customInsert (res, insertFn) {
         //TODO
         // var domain = location.href         // 正式环境
-        var domain = 'http://localhost:8081/static' // 开发环境
+        var domain = 'http://localhost:8081/static' // 开发环境q
         var url = domain + res.data.relativePath
 
         // 从 res 中找到 url alt href ，然后插入图片

@@ -1,0 +1,282 @@
+<template>
+  <base-content>
+
+    <div class="container q-pa-lg q-col-gutter-md">
+
+      <div class="q-pa-md">
+        <div v-if="!isRead">
+          <q-table
+            class="email-list"
+            title="邮件列表"
+            :data="emailList"
+            :columns="columns"
+            :pagination.sync="pagination"
+            row-key="id"
+            :loading="loading"
+            selection="multiple"
+            @request="onRequest"
+            :selected.sync="selected"
+            color="blue-8"
+            @row-click="readEmail"
+          >
+            <template v-slot:top>
+
+              <div class="q-col-gutter-sm">
+
+                <div class="row">
+                  <q-item-label style="margin-top: 1rem"><p style="font-size: 1.6em">收件列表</p></q-item-label>
+                </div>
+                <div class="row" v-if="selected.length > 0">
+                  <q-btn color="red" :disable="loading" icon="delete" @click="delMail"/>
+                </div>
+              </div>
+              <q-space/>
+
+              <q-select dense style="width: 12rem;" standout="bg-teal text-white" v-model="mail.bindId"
+                        :options="binds"
+                        label="选择邮箱..."
+                        option-value="id"
+                        option-label="emailUser"
+                        emit-value
+                        map-options
+                        @input="getDataList"
+              />
+
+            </template>
+<!--            <template v-slot:top-right>-->
+
+<!--            </template>-->
+
+          </q-table>
+        </div>
+        <div v-else>
+          <q-card>
+            <q-card-section style="box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.3);background: #d7e7f7">
+              <q-btn icon="keyboard_return" @click="isRead=false" flat round dense/>
+              <q-space/>
+            </q-card-section>
+            <q-scroll-area style="height: 50rem">
+
+              <q-card-section style="box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.15);background: #fcfcfc">
+                <p style="margin-left: 2rem;font-size: 2em;font-weight: bold">{{ currentEmail.subject }}</p>
+                <p style="margin-left: 2rem">发件人：<b>{{ currentEmail.formName }}</b> {{
+                    '  <' + currentEmail.from + '>'
+                  }}</p>
+                <p style="margin-left: 2rem">时间：{{ formatDetailTime(currentEmail.receiveTime) }}</p>
+<!--                <p style="margin-left: 2rem">收件人：{{ currentEmail.recipients[0] }}</p>-->
+                <p style="margin-left: 2rem">收件人：{{ getBindEmail(currentEmail.bindId) }}</p>
+              </q-card-section>
+
+              <q-card-section style="margin-top: 2rem">
+                <p v-html="currentEmail.content"></p>
+              </q-card-section>
+
+            </q-scroll-area>
+          </q-card>
+        </div>
+
+      </div>
+
+    </div>
+
+  </base-content>
+</template>
+
+<script>
+import { pageListEmail,delMail } from 'src/api/EmailApi'
+import moment from 'moment'
+import BaseContent from 'components/BaseContent/BaseContent.vue'
+import { bindList } from 'src/api/BindApi'
+
+
+export default {
+  components: {
+    BaseContent,
+    pageListEmail
+  },
+  name: 'receive-mail',
+  data () {
+    return {
+      isRead: false,
+      loading: false,
+      selected: [],
+      emailList: [],
+      currentEmail: {},
+      mail: {
+        bindId: null
+      },
+      columns: [
+        {
+          name: 'from',
+          required: true,
+          label: '发件人',
+          align: 'left',
+          field: 'from',
+        },
+        {
+          name: 'subject',
+          align: 'left',
+          label: '主题',
+          field: 'subject',
+        }
+        ,
+        {
+          name: 'bindId',
+          align: 'left',
+          label: '收件邮箱',
+          field: row => this.getBindEmail(row.bindId),
+        }
+        , {
+          name: 'receiveTime',
+          align: 'center',
+          label: '收件时间',
+          field: row => this.formatTime(row.receiveTime),
+        }
+      ],
+      pagination: {
+        sortBy: 'desc',
+        descending: false,
+        page: 1,
+        rowsPerPage: 10,
+        rowsNumber: 0,
+      },
+      binds: []
+    }
+  },
+  methods: {
+    getDataList () {
+      this.loading = true
+      pageListEmail(Object.assign({
+        pageNum: this.pagination.page,
+        pageSize: this.pagination.rowsPerPage,
+        type: 1,
+        bindId: this.mail.bindId
+      }, this.searchAddressBook)).then(res => {
+        this.emailList = res.data.data.pageData
+        this.pagination.rowsNumber = res.data.data.totalNum
+      }).finally(a => {
+        this.loading = false
+      })
+    },
+
+    onRequest (props) {
+      const {
+        page,
+        rowsPerPage,
+        rowsNumber
+      } = props.pagination
+      // console.log(`获取page： ${page}  ${rowsPerPage}`)
+      this.pagination.page = page
+      if (rowsPerPage === 0) {
+        // rowsPerPage 为0，表示一页显示全部数据
+        this.pagination.rowsPerPage = rowsNumber
+      } else {
+        this.pagination.rowsPerPage = rowsPerPage
+      }
+      this.getDataList()
+    },
+
+    // 获取绑定邮箱账号
+    getBindEmail (id) {
+      for (let i = 0; i < this.binds.length; i++) {
+        if (this.binds[i].id == id) {
+          return this.binds[i].emailUser
+        }
+      }
+    },
+    formatTime (m) {
+      return moment(m).calendar(null, {
+        sameDay: '[今天] HH:MM',
+        nextDay: '[明天] HH:MM',
+        nextWeek: 'dddd',
+        lastDay: '[昨天] HH:MM',
+        lastWeek: '[上个] dddd',
+        sameElse: 'DD/MM/YYYY'
+      })
+    },
+    formatDetailTime (m) {
+      return moment(m).format('lll') + ' (' + moment(m).format('dddd') + ')'
+    },
+    readEmail (evt, row) {
+      this.currentEmail = row
+      this.isRead = true
+    },
+    getBindList () {
+      bindList().then(res => {
+        if(res.data.type === 'success'){
+         this.binds = res.data.data
+          this.binds.unshift({
+            id: null,
+            emailUser: '所有'
+          })
+        }
+      })
+    },
+    delMail() {
+      if (this.selected.length < 1) {
+        return
+      }
+      this.$q.dialog({
+        title: '提示',
+        message: '确认删除选中的 ' + this.selected.length + ' 项邮箱吗？',
+        cancel: true,
+        persistent: true,
+        ok: {
+          flat: true,
+          textColor: 'red'
+        }
+      }).onOk(() => {
+        delMail(
+          this.selected
+        ).then(res => {
+          if (res.data.type === 'success') {
+            this.$success('删除成功')
+            this.getDataList()
+          } else {
+            this.$error(res)
+          }
+        })
+      })
+    },
+    test(){
+      console.log(123)
+    }
+  },
+  created () {
+    moment.locale('zh-cn')
+    this.getDataList()
+    this.getBindList()
+    console.log(this.$route.params.tagId)
+  }
+}
+</script>
+
+<style lang="sass">
+
+.email-list
+
+  .q-table__top,
+  .q-table__bottom,
+  thead tr:first-child th
+    background-color: rgba(100, 181, 246, 0.2)
+
+  * tr:hover
+    cursor: pointer
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.4)
+    margin-top: 90px
+    background-color: #fcfcff
+    transition: all 0.2s
+
+  tbody
+    td:after
+      background: rgba(100, 181, 246, 0.2)
+
+
+.email-body
+  //width: 50rem
+  height: 50rem
+  padding: 0.5rem
+  box-sizing: border-box
+  overflow: hidden
+
+</style>

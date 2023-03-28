@@ -62,6 +62,7 @@
               selection="multiple"
               :loading="loading"
               :selected.sync="selected"
+              color="blue-7"
             >
               <template v-slot:body-cell-group="props">
                 <q-td :props="props">
