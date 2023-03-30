@@ -131,7 +131,10 @@ export default {
 
     removeOthersTagView (i) {
       this.$store.commit('REMOVE_TAG_VIEW', { side: 'others', index: i })
-    }
+    },
+
+  },
+  created () {
 
   }
 }

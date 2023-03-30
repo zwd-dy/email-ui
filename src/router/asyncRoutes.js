@@ -49,6 +49,17 @@ const asyncRoutesChildren = [
     component: () => import('../pages/email/receive.vue')
   },
   {
+    path: '/sent',
+    name: 'sent',
+    meta: {
+      roles: ['user', 'admin'],
+      title: '已发送',
+      icon: 'send',
+      keepAlive: true
+    },
+    component: () => import('../pages/email/sent.vue')
+  },
+  {
     path: 'async-router',
     name: 'asyncRouter',
     meta: {

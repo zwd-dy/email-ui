@@ -7,7 +7,7 @@
         <div v-if="!isRead">
           <q-table
             class="email-list"
-            title="邮件列表"
+            title="已发送邮件"
             :data="emailList"
             :columns="columns"
             :pagination.sync="pagination"
@@ -19,6 +19,13 @@
             color="blue-8"
             @row-click="readEmail"
           >
+            <template v-slot:body-cell-sendState="props">
+              <q-td :props="props">
+                <div>
+                  <q-badge :color="formatSendStateColor(props.row.sendState)" :label="props.value" />
+                </div>
+              </q-td>
+            </template>
             <template v-slot:top>
 
               <div class="q-col-gutter-sm">
@@ -43,9 +50,9 @@
               />
 
             </template>
-<!--            <template v-slot:top-right>-->
+            <!--            <template v-slot:top-right>-->
 
-<!--            </template>-->
+            <!--            </template>-->
 
           </q-table>
         </div>
@@ -63,8 +70,8 @@
                     '  <' + currentEmail.from + '>'
                   }}</p>
                 <p style="margin-left: 2rem">时间：{{ formatDetailTime(currentEmail.receiveTime) }}</p>
-<!--                <p style="margin-left: 2rem">收件人：{{ currentEmail.recipients[0] }}</p>-->
-                <p style="margin-left: 2rem">收件人：{{ getBindEmail(currentEmail.bindId) }}</p>
+                <!--                <p style="margin-left: 2rem">收件人：{{ currentEmail.recipients[0] }}</p>-->
+                <p style="margin-left: 2rem">收件人：{{ formatRecipients(currentEmail.recipients) }}</p>
               </q-card-section>
 
               <q-card-section style="margin-top: 2rem">
@@ -83,11 +90,10 @@
 </template>
 
 <script>
-import { pageListEmail,delMail } from 'src/api/EmailApi'
+import { pageListEmail, delMail } from 'src/api/EmailApi'
 import moment from 'moment'
 import BaseContent from 'components/BaseContent/BaseContent.vue'
 import { bindList } from 'src/api/BindApi'
-
 
 export default {
   components: {
@@ -124,12 +130,19 @@ export default {
           name: 'bindId',
           align: 'left',
           label: '收件邮箱',
-          field: row => this.getBindEmail(row.bindId),
+          field: row => this.formatRecipients(row.recipients),
+        }
+        ,
+        {
+          name: 'sendState',
+          align: 'left',
+          label: '发件状态',
+          field: row => this.formatSendState(row.sendState),
         }
         , {
           name: 'receiveTime',
           align: 'center',
-          label: '收件时间',
+          label: '发件时间',
           field: row => this.formatTime(row.receiveTime),
         }
       ],
@@ -149,11 +162,12 @@ export default {
       pageListEmail(Object.assign({
         pageNum: this.pagination.page,
         pageSize: this.pagination.rowsPerPage,
-        type: 1,
+        type: 0,
         bindId: this.mail.bindId
       }, this.searchAddressBook)).then(res => {
         this.emailList = res.data.data.pageData
         this.pagination.rowsNumber = res.data.data.totalNum
+        this.selected.length = 0
       }).finally(a => {
         this.loading = false
       })
@@ -203,8 +217,8 @@ export default {
     },
     getBindList () {
       bindList().then(res => {
-        if(res.data.type === 'success'){
-         this.binds = res.data.data
+        if (res.data.type === 'success') {
+          this.binds = res.data.data
           this.binds.unshift({
             id: null,
             emailUser: '所有'
@@ -212,7 +226,7 @@ export default {
         }
       })
     },
-    delMail() {
+    delMail () {
       if (this.selected.length < 1) {
         return
       }
@@ -238,15 +252,40 @@ export default {
         })
       })
     },
-    test(){
+    formatRecipients (arr) {
+      let str = ''
+      for (let i = 0; i < arr.length; i++) {
+        str += ',' + arr[i]
+      }
 
+      return str.slice(1)
+    },
+    formatSendState (state) {
+      console.log(state)
+      if (state == 0) {
+        return '已投递到对方邮箱'
+      } else if (state == 1) {
+        return '正在发送'
+      } else if (state == 2) {
+        return '发送失败'
+      }
+    },
+    formatSendStateColor (state) {
+      console.log(state)
+      if (state == 0) {
+        return 'green'
+      } else if (state == 1) {
+        return 'cyan'
+      } else if (state == 2) {
+        return 'red'
+      }
     }
   },
   created () {
     moment.locale('zh-cn')
     this.getDataList()
     this.getBindList()
-    console.log("params",this.$route.hash)
+    console.log('params', this.$route.hash)
   }
 }
 </script>
