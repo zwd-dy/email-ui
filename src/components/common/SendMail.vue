@@ -37,6 +37,7 @@
           <q-input dense v-model="mail.subject" label="主题" :rules="[ val => val && val.length > 0 || '请输入主题']"/>
 
           <q-uploader
+            ref="uploader"
             :url="uploadPath"
             label="附件上传"
             color="grey-6"
@@ -69,7 +70,7 @@
 
     <q-card-section class="q-pt-none">
       <div class="row-lg q-gutter-sm">
-        <q-select dense style="max-width: 12rem;" standout="bg-teal text-white" v-model="mail.from" :options="binds"
+        <q-select dense style="max-width: 12rem;" standout="bg-teal text-white" v-model="mail.bindId" :options="binds"
                   label="选择发件邮箱..."
                   option-value="id"
                   option-label="emailUser"
@@ -79,7 +80,7 @@
         />
         <q-btn @click="sendMailBtn" icon="send" color="primary" label="发送"/>
         <q-btn icon="timer" color="white" text-color="black" label="定时发送"/>
-        <q-btn icon="drafts" color="white" text-color="black" label="存草稿"/>
+        <q-btn @click="saveDraft" icon="drafts" color="white" text-color="black" label="存草稿"/>
       </div>
     </q-card-section>
 
@@ -147,10 +148,14 @@ import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { listAddressGroup, pageListContact } from 'src/api/ContactsApi'
 import { bindList } from 'src/api/BindApi'
 import Vue from 'vue'
-import { sendMailApi } from 'src/api/EmailApi'
+import { saveMailDraft, sendMailApi } from 'src/api/EmailApi'
 
 export default {
   name: 'SendMail',
+  props: {
+    mailData: null,
+    closeDialog: Function
+  },
   components: {
     Editor,
     Toolbar
@@ -333,9 +338,10 @@ export default {
     },
     uploadedFun (field) {
       var res = JSON.parse(field.xhr.response)
+      console.log(res)
       if (res.type === 'success') {
         this.mail.fileId.push(res.data.id)
-        console.log(this.mail.fileId)
+        console.log(this.$refs.uploader.uploadedFiles)
       } else {
         this.$error(res)
       }
@@ -358,19 +364,39 @@ export default {
 
     // 发送邮件
     sendMailBtn () {
-      this.sendMail();
+      this.sendMail()
+      this.closeDialog()
     },
 
     // 构建发邮件请求
     sendMail () {
       sendMailApi(this.mail).then(res => {
+        if (res.data.type == 'success') {
+          this.$success('已加入发信队列')
 
+        } else {
+          this.$error(res)
+        }
+      })
+    },
+    saveDraft () {
+      saveMailDraft(this.mail).then(res => {
+        if (res.data.type == 'success') {
+          this.$success('已保存草稿，请到草稿箱查看')
+          this.closeDialog()
+        } else {
+          this.$error(res)
+        }
       })
     }
 
   },
   created () {
-    var that = this
+    // 草稿打开
+    if (this.mailData) {
+      this.mail = this.mailData
+    }
+    let that = this
     this.getBinds()
     this.editorConfig.hoverbarKeys = {
       'image': {

@@ -31,7 +31,7 @@
               <div class="q-col-gutter-sm">
 
                 <div class="row">
-                  <q-item-label style="margin-top: 1rem"><p style="font-size: 1.6em">收件列表</p></q-item-label>
+                  <q-item-label style="margin-top: 1rem"><p style="font-size: 1.6em"><q-icon name="send"/>已发件</p></q-item-label>
                 </div>
                 <div class="row" v-if="selected.length > 0">
                   <q-btn color="red" :disable="loading" icon="delete" @click="delMail"/>
@@ -59,7 +59,13 @@
         <div v-else>
           <q-card>
             <q-card-section style="box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.3);background: #d7e7f7">
+              <!--              邮件操作按钮-->
               <q-btn icon="keyboard_return" @click="isRead=false" flat round dense/>
+              <q-btn style="margin-left: 2rem" icon="delete" @click="delOneMail(currentEmail)" flat round dense>
+                <q-tooltip :offset="[10, 10]">
+                  删除邮件
+                </q-tooltip>
+              </q-btn>
               <q-space/>
             </q-card-section>
             <q-scroll-area style="height: 50rem">
@@ -143,7 +149,7 @@ export default {
           name: 'receiveTime',
           align: 'center',
           label: '发件时间',
-          field: row => this.formatTime(row.receiveTime),
+          field: row => this.formatTime(row.sendTime),
         }
       ],
       pagination: {
@@ -200,10 +206,10 @@ export default {
     },
     formatTime (m) {
       return moment(m).calendar(null, {
-        sameDay: '[今天] HH:MM',
-        nextDay: '[明天] HH:MM',
+        sameDay: '[今天] HH:mm',
+        nextDay: '[明天] HH:mm',
         nextWeek: 'dddd',
-        lastDay: '[昨天] HH:MM',
+        lastDay: '[昨天] HH:mm',
         lastWeek: '[上个] dddd',
         sameElse: 'DD/MM/YYYY'
       })
@@ -252,6 +258,32 @@ export default {
         })
       })
     },
+    delOneMail(item) {
+      let arr = []
+      arr.push(item)
+      this.$q.dialog({
+        title: '提示',
+        message: '删除邮件 【' + item.subject + '】 吗？',
+        cancel: true,
+        persistent: true,
+        ok: {
+          flat: true,
+          textColor: 'red'
+        }
+      }).onOk(() => {
+        delMail(
+          arr
+        ).then(res => {
+          if (res.data.type === 'success') {
+            this.$success('删除成功')
+            this.getDataList()
+            this.isRead = false
+          } else {
+            this.$error(res)
+          }
+        })
+      })
+    },
     formatRecipients (arr) {
       let str = ''
       for (let i = 0; i < arr.length; i++) {
@@ -279,7 +311,8 @@ export default {
       } else if (state == 2) {
         return 'red'
       }
-    }
+    },
+
   },
   created () {
     moment.locale('zh-cn')

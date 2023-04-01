@@ -102,7 +102,7 @@ export default {
   },
   methods: {
     getUsername () {
-      return sessionStorage.getItem('username')
+      return JSON.parse(sessionStorage.getItem('user')).username
     },
     fullScreen () {
       if (this.$q.fullscreen.isActive) {

@@ -10,6 +10,15 @@ export function sendMailApi (obj) {
   })
 }
 
+export function saveMailDraft (obj) {
+  return _axios({
+    url: Vue.prototype.$PUBLIC_PATH + 'email/save',
+    method: 'post',
+    responseType: 'json',
+    data: obj
+  })
+}
+
 export function pageListEmail (param) {
   return _axios({
     url: Vue.prototype.$PUBLIC_PATH + 'email/pageList',

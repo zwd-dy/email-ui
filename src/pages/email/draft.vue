@@ -4,10 +4,9 @@
     <div class="container q-pa-lg q-col-gutter-md">
 
       <div class="q-pa-md">
-        <div v-if="!isRead">
           <q-table
             class="email-list"
-            title="邮件列表"
+            title="草稿箱"
             :data="emailList"
             :columns="columns"
             :pagination.sync="pagination"
@@ -24,7 +23,7 @@
               <div class="q-col-gutter-sm">
 
                 <div class="row">
-                  <q-item-label style="margin-top: 1rem"><p style="font-size: 1.6em"><q-icon name="markunread_mailbox"/>收件列表</p></q-item-label>
+                  <q-item-label style="margin-top: 1rem"><p style="font-size: 1.6em"><q-icon name="drafts"/>草稿箱</p></q-item-label>
                 </div>
                 <div class="row" v-if="selected.length > 0">
                   <q-btn color="red" :disable="loading" icon="delete" @click="delMail"/>
@@ -49,48 +48,11 @@
 
           </q-table>
         </div>
-        <div v-else>
-          <q-card>
-            <q-card-section style="box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.3);background: #d7e7f7">
-              <!--              邮件操作按钮-->
-              <q-btn icon="keyboard_return" @click="isRead=false" flat round dense/>
-              <!--              删除-->
-              <q-btn style="margin-left: 2rem" icon="delete" @click="delOneMail(currentEmail)" flat round dense>
-                <q-tooltip :offset="[10, 10]">
-                  删除邮件
-                </q-tooltip>
-              </q-btn>
-              <!--              添加到联系人-->
-              <q-btn icon="add_ic_call" @click="addToContact(currentEmail)" flat round dense>
-                <q-tooltip :offset="[10, 10]">
-                  添加到联系人
-                </q-tooltip>
-              </q-btn>
-              <q-space/>
-            </q-card-section>
-            <q-scroll-area style="height: 50rem">
-
-              <q-card-section style="box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.15);background: #fcfcfc">
-                <p style="margin-left: 2rem;font-size: 2em;font-weight: bold">{{ currentEmail.subject }}</p>
-                <p style="margin-left: 2rem">发件人：<b>{{ currentEmail.formName }}</b> {{
-                    '  <' + currentEmail.from + '>'
-                  }}</p>
-                <p style="margin-left: 2rem">时间：{{ formatDetailTime(currentEmail.receiveTime) }}</p>
-                <!--                <p style="margin-left: 2rem">收件人：{{ currentEmail.recipients[0] }}</p>-->
-                <p style="margin-left: 2rem">收件人：{{ getBindEmail(currentEmail.bindId) }}</p>
-              </q-card-section>
-
-              <q-card-section style="margin-top: 2rem">
-                <p v-html="currentEmail.content"></p>
-              </q-card-section>
-
-            </q-scroll-area>
-          </q-card>
-        </div>
-
       </div>
 
-    </div>
+    <q-dialog v-model="isRead">
+      <send-mail v-if="isRead" :close-dialog="closeSendMailDialog" :mail-data="currentEmail"/>
+    </q-dialog>
 
   </base-content>
 </template>
@@ -101,9 +63,12 @@ import moment from 'moment'
 import BaseContent from 'components/BaseContent/BaseContent.vue'
 import { bindList } from 'src/api/BindApi'
 import { addContact } from 'src/api/ContactsApi'
+import sendMail from 'components/common/SendMail.vue'
+import SendMail from 'components/common/SendMail.vue'
 
 export default {
   components: {
+    SendMail,
     BaseContent,
     pageListEmail
   },
@@ -137,13 +102,7 @@ export default {
           name: 'bindId',
           align: 'left',
           label: '收件邮箱',
-          field: row => this.getBindEmail(row.bindId),
-        }
-        , {
-          name: 'receiveTime',
-          align: 'center',
-          label: '收件时间',
-          field: row => this.formatTime(row.receiveTime),
+          field: row => this.formatRecipients(row.recipients),
         }
       ],
       pagination: {
@@ -157,12 +116,15 @@ export default {
     }
   },
   methods: {
+    closeSendMailDialog(){
+      this.isRead = false
+    },
     getDataList () {
       this.loading = true
       pageListEmail(Object.assign({
         pageNum: this.pagination.page,
         pageSize: this.pagination.rowsPerPage,
-        type: 1,
+        type: 2,
         bindId: this.mail.bindId
       }, this.searchAddressBook)).then(res => {
         this.emailList = res.data.data.pageData
@@ -171,7 +133,15 @@ export default {
         this.loading = false
       })
     },
-
+    formatRecipients (arr) {
+      let str = ''
+      if(arr) {
+        for (let i = 0; i < arr.length; i++) {
+          str += ',' + arr[i]
+        }
+      }
+      return str.slice(1)
+    },
     onRequest (props) {
       const {
         page,
@@ -245,6 +215,7 @@ export default {
           if (res.data.type === 'success') {
             this.$success('删除成功')
             this.getDataList()
+            this.selected.length = 0
           } else {
             this.$error(res)
           }

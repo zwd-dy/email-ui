@@ -60,6 +60,17 @@ const asyncRoutesChildren = [
     component: () => import('../pages/email/sent.vue')
   },
   {
+    path: '/draft',
+    name: 'draft',
+    meta: {
+      roles: ['user', 'admin'],
+      title: '草稿箱',
+      icon: 'drafts',
+      keepAlive: true
+    },
+    component: () => import('../pages/email/draft.vue')
+  },
+  {
     path: 'async-router',
     name: 'asyncRouter',
     meta: {

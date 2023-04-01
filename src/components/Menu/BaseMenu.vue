@@ -40,7 +40,7 @@
     </div>
 
     <q-dialog no-backdrop-dismiss v-model="dialog.send">
-      <send-mail></send-mail>
+      <send-mail v-if="dialog.send" :close-dialog="closeSendMailDialog"></send-mail>
     </q-dialog>
 
   </q-scroll-area>
@@ -78,6 +78,10 @@ export default {
     }
   },
   methods: {
+    // 关闭发邮件对话框
+    closeSendMailDialog(){
+      this.dialog.send = false
+    },
     // 标签被选择
     changeTag (item) {
       console.log(item.label)

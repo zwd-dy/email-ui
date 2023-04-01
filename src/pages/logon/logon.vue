@@ -168,7 +168,8 @@ export default {
           console.log('token', res.data.data.token)
           sessionStorage.setItem('access_token', res.data.data.token)
           sessionStorage.setItem('user_role', 'user')
-          sessionStorage.setItem('username', this.username)
+          sessionStorage.setItem('user', JSON.stringify(res.data.data.user.user))
+          // sessionStorage.setItem('username', this.username)
           const lt = setTimeout(() => {
             this.$router.push('/').then(e => {
               this.$q.notify({
