@@ -27,12 +27,13 @@
       </div>
       <q-list style="margin-top: 1em">
         <base-tag-item
-          :tag-data="tagList"
+          :tag-data="$global.tagList"
           :init-level="0"
           @changeTag="changeTag"
           @addChildrenTag="addChildrenTag"
           @delTag="delTag"
           @updateTag="updateTag"
+          @updateTagColor="updateTagColor"
         />
       </q-list>
 
@@ -62,7 +63,7 @@ export default {
     BaseTagItem,
     SendMail,
     BaseMenuItem,
-    BottomLink
+    BottomLink,
   },
   data () {
     return {
@@ -73,8 +74,24 @@ export default {
         send: false
       },
 
-      tagList: [],
       selected: '',
+      options: [ {
+        id: 'a',
+        label: 'a',
+        children: [ {
+          id: 'aa',
+          label: 'aa',
+        }, {
+          id: 'ab',
+          label: 'ab',
+        } ],
+      }, {
+        id: 'b',
+        label: 'b',
+      }, {
+        id: 'c',
+        label: 'c',
+      } ],
     }
   },
   methods: {
@@ -195,10 +212,24 @@ export default {
         })
       })
     },
+    // 更改标签颜色
+    updateTagColor(item,color){
+      console.log(item,color)
+      item.color = color
+      updateTag(item).then(res => {
+        if(res.data.type == 'success'){
+          this.$success("更改成功")
+          this.getTagsList()
+        } else {
+          this.$error(res)
+        }
+      })
+    },
     getTagsList () {
       tagList().then(res => {
         if (res.data.type === 'success') {
-          this.tagList = res.data.data.data
+          this.$global.tagList = res.data.data.data
+          this.$forceUpdate();
         }
       })
     },
@@ -206,6 +237,7 @@ export default {
   },
   created () {
     this.getTagsList()
+    console.log(this.$global.tagList)
   }
 }
 </script>

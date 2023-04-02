@@ -60,6 +60,17 @@ const asyncRoutesChildren = [
     component: () => import('../pages/email/sent.vue')
   },
   {
+    path: '/schedule',
+    name: 'schedule',
+    meta: {
+      roles: ['user', 'admin'],
+      title: '定时发送',
+      icon: 'schedule',
+      keepAlive: true
+    },
+    component: () => import('../pages/email/schedule.vue')
+  },
+  {
     path: '/draft',
     name: 'draft',
     meta: {

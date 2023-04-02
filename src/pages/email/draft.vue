@@ -51,7 +51,7 @@
       </div>
 
     <q-dialog v-model="isRead">
-      <send-mail v-if="isRead" :close-dialog="closeSendMailDialog" :mail-data="currentEmail"/>
+      <send-mail v-if="isRead" :refresh="getDataList" :close-dialog="closeSendMailDialog" :mail-data="currentEmail"/>
     </q-dialog>
 
   </base-content>

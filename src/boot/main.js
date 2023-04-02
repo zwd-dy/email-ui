@@ -8,7 +8,10 @@ import '../quasar.manage.config'
 import '../axios/FetchData'
 import JSEncrypt from 'jsencrypt';
 import { handleBaiduStatistics } from 'src/utils/CloneUtils'
+import global from 'boot/global'
 import Vue from 'vue'
+
+Vue.prototype.$global = global
 
 Vue.prototype.$getRsaCode = function(str){ // 注册方法
   let pubKey = `MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCQem04yswDtFgXBdbuiJmb5lA5w4AAR2c3EqJ+vipO60nrLEaJMx2VAMtlb8Kw8ZIPvdpAW3g+5r/Jf3Lpm/Pldb+dpZFSED4s6E3VzYxkYhSc+qzC8DXVO66xPXgdAQIx7KRcOfxMytXFT7bHyA+rQ56it+/C+GKZ9QJCAoCTLwIDAQAB`;// ES6 模板字符串 引用 rsa 公钥
@@ -32,6 +35,16 @@ Vue.prototype.$error = function (res){
   this.$q.notify({
     icon: 'announcement',
     message: '（' + res.data.code + '）' + res.data.message,
+    color: 'red',
+    position: 'top',
+    timeout: 1500
+  })
+}
+
+Vue.prototype.$errorStr = function (str){
+  this.$q.notify({
+    icon: 'announcement',
+    message: str,
     color: 'red',
     position: 'top',
     timeout: 1500

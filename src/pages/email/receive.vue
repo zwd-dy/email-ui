@@ -19,16 +19,102 @@
             color="blue-8"
             @row-click="readEmail"
           >
+            <template v-slot:body-cell-from="props">
+              <q-td :props="props" style="max-width: 7rem">
+                <div>
+                  {{ props.value }}
+                  <q-badge v-for="item in props.row.tagIds" :key="item" :style="{'background-color':getTagColor(item)}"
+                           :label="getTagName(item)"/>
+                </div>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-subject="props">
+              <q-td :props="props" style="max-width: 7rem">
+
+                <div>
+                  <q-icon v-if="props.row.isStar == 1" name="grade" color="amber-4" size="1.2rem"/>
+                  {{ props.value }}
+                </div>
+              </q-td>
+            </template>
+
             <template v-slot:top>
 
               <div class="q-col-gutter-sm">
 
                 <div class="row">
-                  <q-item-label style="margin-top: 1rem"><p style="font-size: 1.6em"><q-icon name="markunread_mailbox"/>收件列表</p></q-item-label>
+                  <q-item-label style="margin-top: 1rem">
+                    <p style="font-size: 1.6em">
+                      <q-icon name="markunread_mailbox"/>
+                      收件列表
+                    </p>
+                  </q-item-label>
                 </div>
-                <div class="row" v-if="selected.length > 0">
-                  <q-btn color="red" :disable="loading" icon="delete" @click="delMail"/>
+
+                <div class="row q-col-gutter-sm">
+
+                  <!--                  删除按钮-->
+                  <div class="row" v-if="selected.length > 0">
+                    <q-btn color="red" :disable="loading" icon="delete" @click="delMail"/>
+                  </div>
+                  <!--                  添加到标签按钮-->
+                  <div class="row" v-if="selected.length > 0">
+                    <q-btn-dropdown ref="dropdownTag" color="white" text-color="black" label="添加到标签...">
+                      <q-card class="my-card">
+                        <q-card-section>
+                          <div class="text-h6">选择标签</div>
+
+                        </q-card-section>
+                        <q-separator/>
+                        <q-card-actions vertical>
+                          <q-tree class="col-12 col-sm-6"
+                                  :nodes="tagList"
+                                  :ticked.sync="selectedTag"
+                                  node-key="id"
+                                  tick-strategy="strict"
+                          ></q-tree>
+                        </q-card-actions>
+                        <q-separator/>
+                        <q-card-actions vertical>
+                          <q-btn flat @click="delToTag">清除标签</q-btn>
+                        </q-card-actions>
+
+                        <q-separator/>
+
+                        <q-card-actions align="right">
+                          <q-btn flat v-close-popup>取消</q-btn>
+                          <q-btn flat color="primary" @click="addToTag">确认</q-btn>
+                        </q-card-actions>
+
+                      </q-card>
+
+                    </q-btn-dropdown>
+                  </div>
+
+                  <!--                  更多-->
+                  <div class="row" v-if="selected.length > 0">
+                    <q-btn color="white" text-color="black" icon="more_horiz">
+                      <q-menu>
+                        <q-list>
+                          <q-item clickable v-close-popup @click="addStar()">
+                            <q-item-section>
+                              <q-item-label>添加星标</q-item-label>
+                            </q-item-section>
+                          </q-item>
+
+                          <q-item clickable v-close-popup @click="delStar()">
+                            <q-item-section>
+                              <q-item-label>清除星标</q-item-label>
+                            </q-item-section>
+                          </q-item>
+
+                        </q-list>
+                      </q-menu>
+                    </q-btn>
+                  </div>
+
                 </div>
+
               </div>
               <q-space/>
 
@@ -49,6 +135,8 @@
 
           </q-table>
         </div>
+
+<!--        邮件详情-->
         <div v-else>
           <q-card>
             <q-card-section style="box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.3);background: #d7e7f7">
@@ -64,6 +152,17 @@
               <q-btn icon="add_ic_call" @click="addToContact(currentEmail)" flat round dense>
                 <q-tooltip :offset="[10, 10]">
                   添加到联系人
+                </q-tooltip>
+              </q-btn>
+              <!--              星标按钮-->
+              <q-btn v-if="currentEmail.isStar != 1"  icon="star_border" @click="addStar(currentEmail)" flat round dense>
+                <q-tooltip :offset="[10, 10]">
+                  添加星标
+                </q-tooltip>
+              </q-btn>
+              <q-btn v-else color="amber-5" icon="grade" @click="delStar(currentEmail)" flat round dense>
+                <q-tooltip :offset="[10, 10]">
+                  清除星标
                 </q-tooltip>
               </q-btn>
               <q-space/>
@@ -96,7 +195,7 @@
 </template>
 
 <script>
-import { pageListEmail, delMail } from 'src/api/EmailApi'
+import { pageListEmail, delMail, addToTag, delToTag, addStar, delStar } from 'src/api/EmailApi'
 import moment from 'moment'
 import BaseContent from 'components/BaseContent/BaseContent.vue'
 import { bindList } from 'src/api/BindApi'
@@ -114,6 +213,9 @@ export default {
       loading: false,
       selected: [],
       emailList: [],
+      selectedTag: [],
+      tagList: [],
+      searchTagId: null,
       currentEmail: {},
       mail: {
         bindId: null
@@ -163,15 +265,60 @@ export default {
         pageNum: this.pagination.page,
         pageSize: this.pagination.rowsPerPage,
         type: 1,
-        bindId: this.mail.bindId
-      }, this.searchAddressBook)).then(res => {
+        bindId: this.mail.bindId,
+        tagIds: this.searchTagId
+      })).then(res => {
         this.emailList = res.data.data.pageData
         this.pagination.rowsNumber = res.data.data.totalNum
       }).finally(a => {
         this.loading = false
       })
     },
-
+    // 添加到标签
+    addToTag () {
+      addToTag({
+        mailList: this.selected,
+        tagIds: this.selectedTag
+      }).then(res => {
+        if (res.data.type == 'success') {
+          this.$success('添加到标签成功')
+          this.selectedTag.length = 0
+          this.getDataList()
+          this.$refs.dropdownTag.hide()
+        } else {
+          this.$error(res)
+        }
+      })
+    },
+    // 从标签中删除
+    delToTag () {
+      delToTag(this.selected).then(res => {
+        if (res.data.type == 'success') {
+          this.$success('操作成功')
+          this.getDataList()
+          this.$refs.dropdownTag.hide()
+        } else {
+          this.$error(res)
+        }
+      })
+    },
+    // 根据id获取标签名
+    getTagName (id) {
+      for (let i = 0; i < this.tagList.length; i++) {
+        if (this.tagList[i].id === id) {
+          return this.tagList[i].label
+        }
+      }
+    },
+    // 根据id获取标签颜色
+    getTagColor (id) {
+      for (let i = 0; i < this.tagList.length; i++) {
+        if (this.tagList[i].id == id) {
+          let color = this.tagList[i].color
+          return color == null ? '#1976d2' : color
+        }
+      }
+    },
     onRequest (props) {
       const {
         page,
@@ -282,7 +429,7 @@ export default {
     addToContact (item) {
       this.$q.dialog({
         title: '添加到联系人',
-        message: '为 【'+item.from+"】 输入备注",
+        message: '为 【' + item.from + '】 输入备注',
         prompt: {
           model: '',
           isValid: val => val.length > 1, // << here is the magic
@@ -303,15 +450,58 @@ export default {
         })
       })
     },
-    test () {
-
+    // 为邮件添加星标
+    addStar (item) {
+      let value;
+      let arr = []
+      if(item){
+        arr.push(item)
+        value = arr
+      } else {
+        value = this.selected
+        console.log(value)
+      }
+      addStar(value).then(res => {
+        if (res.data.type == 'success') {
+          this.$success('操作成功')
+          this.getDataList()
+          if(item) item.isStar = 1
+        } else {
+          this.$error(res)
+        }
+      })
+    },
+    // 为邮件清除星标
+    delStar (item) {
+      let value;
+      let arr = []
+      if(item){
+        arr.push(item)
+        value = arr
+      } else {
+        value = this.selected
+      }
+      delStar(value).then(res => {
+        if (res.data.type == 'success') {
+          this.$success('操作成功')
+          this.getDataList()
+          if(item) item.isStar = 0
+        } else {
+          this.$error(res)
+        }
+      })
     }
   },
   created () {
     moment.locale('zh-cn')
+    let tagId = this.$route.hash.slice(1)
+    if (tagId) {
+      this.searchTagId = tagId
+    }
+    this.tagList = this.$global.tagList
     this.getDataList()
     this.getBindList()
-    console.log('params', this.$route.hash)
+
   }
 }
 </script>

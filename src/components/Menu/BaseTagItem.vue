@@ -16,40 +16,70 @@
         >
 
           <q-item-section top side>
-            <q-btn v-if="item.children.length>0" dense flat round size="10px" @click="expand(item)" :icon="item.expand ? 'expand_more':'chevron_right'"/>
-            <q-btn v-else style="visibility:hidden" dense flat round size="10px" icon=""/>
+            <div>
+              <q-btn v-if="item.children.length>0" dense flat round size="10px" @click="expand(item)"
+                     :icon="item.expand ? 'expand_more':'chevron_right'"/>
+              <q-btn v-else style="visibility:hidden" dense flat round size="10px" icon=""/>
+              <q-icon name="label" :style="{'color':item.color ? item.color : '#1976d2'}"/>
+            </div>
+
 
           </q-item-section>
+
           <q-item-section>
             {{ item.label }}
           </q-item-section>
+
           <q-item-section top side>
-            <q-btn-dropdown dense flat round size="12px" no-icon-animation dropdown-icon="more_vert">
-              <q-list>
-                <q-item dense clickable v-close-popup @click="addChildrenTag(item.id,item.label)">
-                  <q-item-section>
-                    <q-item-label>添加标签</q-item-label>
-                  </q-item-section>
-                </q-item>
+            <q-btn dense flat round size="12px" icon="more_vert">
+              <q-menu>
+                <q-list>
+                  <q-item dense clickable v-close-popup @click="addChildrenTag(item.id,item.label)">
+                    <q-item-section>
+                      <q-item-label>添加标签</q-item-label>
+                    </q-item-section>
+                  </q-item>
 
-                <q-item dense clickable v-close-popup @click="delTag(item)">
-                  <q-item-section>
-                    <q-item-label>删除标签</q-item-label>
-                  </q-item-section>
-                </q-item>
+                  <q-item dense clickable v-close-popup @click="delTag(item)">
+                    <q-item-section>
+                      <q-item-label>删除标签</q-item-label>
+                    </q-item-section>
+                  </q-item>
 
-                <q-item dense clickable v-close-popup @click="updateTag(item)">
-                  <q-item-section>
-                    <q-item-label>重命名</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
+                  <q-item dense clickable v-close-popup @click="updateTag(item)">
+                    <q-item-section>
+                      <q-item-label>重命名</q-item-label>
+                    </q-item-section>
+                  </q-item>
+
+                  <q-item dense clickable>
+                    <q-item-section>
+                      <q-item-label>选择颜色</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <q-icon name="keyboard_arrow_right"/>
+                    </q-item-section>
+                    <q-menu anchor="top end" self="top start">
+                      <q-card>
+                        <q-color v-model="color" class="my-picker"/>
+                        <q-separator/>
+                        <q-card-actions align="right">
+                          <q-btn flat color="primary" @click="updateTagColor(item,color)">确认</q-btn>
+                        </q-card-actions>
+                      </q-card>
+
+                    </q-menu>
+                  </q-item>
+
+
+                </q-list>
+              </q-menu>
+            </q-btn>
           </q-item-section>
 
         </q-item>
 
-<!--        有children-->
+        <!--        有children-->
         <base-tag-item v-if="item.children && item.expand"
                        :tag-data="item.children"
                        :init-level="initLevel + 0.2"
@@ -72,48 +102,52 @@ import { addTag } from 'src/api/TagApi'
 
 export default {
   name: 'BaseTagItem',
-  props: ['tagData', 'initLevel','current'],
-  watch:{
-    current(){
+  props: ['tagData', 'initLevel', 'current'],
+  watch: {
+    current () {
       this.currentLabel = this.current
     }
   },
   data () {
     return {
-      currentLabel:''
+      currentLabel: '',
+      color: null
     }
   },
-  methods:{
-    addChildrenTag(parentId,label){
-      this.$emit("addChildrenTag",parentId,label)
+  methods: {
+    addChildrenTag (parentId, label) {
+      this.$emit('addChildrenTag', parentId, label)
     },
-    delTag(id){
-      this.$emit("delTag",id)
+    delTag (id) {
+      this.$emit('delTag', id)
     },
-    updateTag(item){
-      this.$emit("updateTag",item)
+    updateTag (item) {
+      this.$emit('updateTag', item)
     },
-    changeTag(item){
-      this.currentLabel = item.label;
-      this.$emit("changeTag",item)
+    updateTagColor (item, color) {
+      this.$emit('updateTagColor', item, color)
     },
-    select(item){
-      this.currentLabel = item.label;
-      this.$emit("changeTag",item)
+    changeTag (item) {
+      this.currentLabel = item.label
+      this.$emit('changeTag', item)
     },
-    expand(item){
+    select (item) {
+      this.currentLabel = item.label
+      this.$emit('changeTag', item)
+    },
+    expand (item) {
       for (let i = 0; i < this.tagData.length; i++) {
-        if(this.tagData[i].id == item.id){
+        if (this.tagData[i].id == item.id) {
           this.tagData[i].expand = !this.tagData[i].expand
-          this.$forceUpdate();
+          this.$forceUpdate()
         }
       }
     },
-    getExpand(id){
+    getExpand (id) {
       for (let i = 0; i < this.tagData.length; i++) {
-        console.log("get-id",this.tagData)
-        if(this.tagData[i].id == id){
-          console.log("expand",this.tagData[i].expand)
+        console.log('get-id', this.tagData)
+        if (this.tagData[i].id == id) {
+          console.log('expand', this.tagData[i].expand)
           return this.tagData[i].expand
         }
       }

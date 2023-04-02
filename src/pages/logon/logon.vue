@@ -138,6 +138,7 @@
 <script>
 import LottieWebCimo from '../../components/LottieWebCimo/LottieWebCimo'
 import { login } from '../../api/UserApi'
+import { tagList } from 'src/api/TagApi'
 
 export default {
   name: 'logon',
@@ -188,7 +189,6 @@ export default {
               }
             })
           }, Math.random() * 3000)
-
         } else {
           this.$q.notify({
             icon: 'announcement',
@@ -235,7 +235,8 @@ export default {
     },
     handleFinish (e) {
       this.isLottieF = e
-    }
+    },
+
   }
 }
 </script>

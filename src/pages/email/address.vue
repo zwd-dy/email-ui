@@ -100,6 +100,8 @@
 
                 <q-input dense standout="bg-teal text-white" v-model="searchAddressBook.name" input-class="text-left"
                          placeholder="搜索"
+                         debounce="1000"
+                         @input="search"
                          class="q-ml-md">
                   <template v-slot:append>
                     <q-icon name="search"/>
@@ -230,7 +232,10 @@ export default {
         this.groupList = res.data.data
       })
     },
-
+    // 按名字搜索
+    search() {
+      this.getDataList()
+    },
     onRequest (props) {
       const {
         page,

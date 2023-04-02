@@ -79,7 +79,34 @@
                   :rules="[ val => val && val.length > 0 || '请选择发件邮箱']"
         />
         <q-btn @click="sendMailBtn" icon="send" color="primary" label="发送"/>
-        <q-btn icon="timer" color="white" text-color="black" label="定时发送"/>
+        <q-btn icon="timer" color="white" text-color="black" label="定时发送">
+          <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+            <q-card class="my-card">
+              <q-card-section>
+                <div class="text-h6">定时发送</div>
+                <div class="text-subtitle2">中国标准时间</div>
+                <div class="text-subtitle1">发送时间：<a style="color: #2f80ed;font-weight: bold;font-size: 20px"> {{ sendTime }}</a></div>
+              </q-card-section>
+
+              <q-separator/>
+
+              <q-card-actions vertical>
+                <div class="row items-start">
+                  <q-date square flat v-model="sendTime" :options="optionsFn" mask="YYYY-MM-DD HH:mm"/>
+                  <q-time square flat v-model="sendTime" mask="YYYY-MM-DD HH:mm"/>
+                </div>
+              </q-card-actions>
+
+              <q-separator/>
+
+              <q-card-actions align="right">
+                <q-btn flat v-close-popup>取消</q-btn>
+                <q-btn flat color="primary" @click="schedulerSendMail">确认</q-btn>
+              </q-card-actions>
+
+            </q-card>
+          </q-popup-proxy>
+        </q-btn>
         <q-btn @click="saveDraft" icon="drafts" color="white" text-color="black" label="存草稿"/>
       </div>
     </q-card-section>
@@ -148,13 +175,15 @@ import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { listAddressGroup, pageListContact } from 'src/api/ContactsApi'
 import { bindList } from 'src/api/BindApi'
 import Vue from 'vue'
-import { saveMailDraft, sendMailApi } from 'src/api/EmailApi'
+import { saveMailDraft, scheduleMail, sendMailApi } from 'src/api/EmailApi'
+import moment from 'moment'
 
 export default {
   name: 'SendMail',
   props: {
     mailData: null,
-    closeDialog: Function
+    closeDialog: Function,
+    refresh: Function
   },
   components: {
     Editor,
@@ -217,10 +246,18 @@ export default {
           name: 'Authorization',
           value: sessionStorage.getItem('access_token')
         }]
-      }
+      },
+      sendTime: moment().format('YYYY-MM-DD HH:mm'),
     }
   },
   methods: {
+    dateToUnix (date) {
+      // date ("2023-04-05 13:14")
+      return moment(date).format('x')
+    },
+    optionsFn (date) {
+      return date >= moment().format('YYYY/MM/DD')
+    },
     createValue (val, done) {
       if (val.length > 0) {
         const modelValue = [].slice()
@@ -237,6 +274,7 @@ export default {
         this.mail.recipients = modelValue
       }
     },
+
     onCreated (editor) {
       this.editor = Object.seal(editor) // 一定要用 Object.seal() ，否则会报错
       this.toolbarConfig = {
@@ -365,15 +403,35 @@ export default {
     // 发送邮件
     sendMailBtn () {
       this.sendMail()
-      this.closeDialog()
     },
+    // 定时发送邮件
+    schedulerSendMail () {
+      let now = Math.round(new Date())
+      let send = this.dateToUnix(this.sendTime)
+      if (send < now) {
+        this.$errorStr('不能选择过去的时间！')
+        return
+      }
 
+      this.mail.sendTime = send
+      scheduleMail(this.mail).then(res => {
+        if (res.data.type == 'success') {
+          this.$success('已安排 ' + moment(Number(send)).calendar() + ' 发送该邮件')
+          this.closeDialog()
+          this.refresh()
+        } else {
+          this.$error(res)
+        }
+      })
+
+    },
     // 构建发邮件请求
     sendMail () {
       sendMailApi(this.mail).then(res => {
         if (res.data.type == 'success') {
           this.$success('已加入发信队列')
-
+          this.closeDialog()
+          this.refresh()
         } else {
           this.$error(res)
         }
@@ -392,6 +450,7 @@ export default {
 
   },
   created () {
+    moment.locale('zh-cn')
     // 草稿打开
     if (this.mailData) {
       this.mail = this.mailData
