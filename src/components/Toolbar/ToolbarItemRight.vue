@@ -46,6 +46,12 @@
               </q-item-section>
               <q-item-section @click="dialog.bind = true">邮箱绑定</q-item-section>
             </q-item>
+            <q-item clickable v-ripple>
+              <q-item-section avatar>
+                <q-icon name="rule"/>
+              </q-item-section>
+              <q-item-section @click="dialog.rule = true">收信规则</q-item-section>
+            </q-item>
             <q-item clickable v-ripple @click="logout">
               <q-item-section avatar>
                 <q-icon name="logout"/>
@@ -76,6 +82,10 @@
             v-if="dialog.bind"
           ></email-bind>
     </q-dialog>
+
+    <q-dialog no-backdrop-dismiss v-model="dialog.rule">
+      <receive-rule v-if="dialog.rule"></receive-rule>
+    </q-dialog>
   </div>
 
 
@@ -85,10 +95,11 @@
 
 <script>
 import EmailBind from 'components/common/EmailBind.vue'
+import ReceiveRule from 'components/common/ReceiveRule.vue'
 
 export default {
   name: 'ToolbarItemRight',
-  components: { EmailBind },
+  components: { ReceiveRule, EmailBind },
   data () {
     return {
       search: '',
@@ -96,7 +107,8 @@ export default {
       bluetooth: true,
       isMaximize: true,
       dialog: {
-        bind: false
+        bind: false,
+        rule: false
       }
     }
   },
