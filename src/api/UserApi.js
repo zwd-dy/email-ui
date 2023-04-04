@@ -17,3 +17,28 @@ export function login (obj) {
     data: obj
   })
 }
+
+export function logout () {
+  return _axios({
+    url: Vue.prototype.$PUBLIC_PATH + 'auth/logout',
+    method: 'delete',
+    responseType: 'json',
+  })
+}
+
+export function getValidCode (username,email) {
+  return _axios({
+    url: Vue.prototype.$PUBLIC_PATH + 'auth/getValidCode?username='+username+'&email='+email,
+    method: 'get',
+    responseType: 'text'
+  })
+}
+
+export function register (obj) {
+  return _axios({
+    url: Vue.prototype.$PUBLIC_PATH + 'auth/register',
+    method: 'post',
+    responseType: 'json',
+    data: obj
+  })
+}

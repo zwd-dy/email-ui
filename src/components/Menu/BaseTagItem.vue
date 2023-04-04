@@ -89,6 +89,7 @@
                        @addChildrenTag="addChildrenTag"
                        @delTag="delTag"
                        @updateTag="updateTag"
+                       @updateTagColor="updateTagColor"
         />
       </template>
 

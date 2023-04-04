@@ -8,17 +8,19 @@
       >
       <slot/>
       </q-scroll-area>
-      <mail-listener hidden="hidden"/>
+<!--      <mail-listener hidden="hidden"/>-->
     </div>
 
 </template>
 
 <script>
 import { thumbStyle } from './ThumbStyle'
-import MailListener from 'components/BaseContent/MailListener.vue'
+// import MailListener from 'components/BaseContent/MailListener.vue'
 export default {
   name: 'BaseContent',
-  components: { MailListener },
+  components: {
+    // MailListener
+  },
   data () {
     return {
       thumbStyle,

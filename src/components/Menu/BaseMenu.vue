@@ -43,6 +43,7 @@
     <q-dialog no-backdrop-dismiss v-model="dialog.send">
       <send-mail v-if="dialog.send" :close-dialog="closeSendMailDialog"></send-mail>
     </q-dialog>
+    <mail-listener hidden="hidden"/>
 
   </q-scroll-area>
 </template>
@@ -56,6 +57,8 @@ import receive from 'pages/email/receive.vue'
 import { tagList, addTag, delTag, updateTag } from 'src/api/TagApi'
 import BaseTagItem from 'components/Menu/BaseTagItem.vue'
 import { batchDelContact } from 'src/api/ContactsApi'
+import MailListener from 'components/BaseContent/MailListener.vue'
+
 
 export default {
   name: 'base-menu',
@@ -64,6 +67,7 @@ export default {
     SendMail,
     BaseMenuItem,
     BottomLink,
+    MailListener
   },
   data () {
     return {

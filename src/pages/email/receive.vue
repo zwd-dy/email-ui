@@ -23,8 +23,8 @@
               <q-td :props="props" style="max-width: 7rem">
                 <div>
                   {{ props.value }}
-                  <q-badge v-for="item in props.row.tagIds" :key="item" :style="{'background-color':getTagColor(item)}"
-                           :label="getTagName(item)"/>
+                  <q-badge v-for="item in props.row.tagIds" :key="item" :style="{'background-color':getTagColor(tagList,item)}"
+                           :label="getTagName(tagList,item)"/>
                 </div>
               </q-td>
             </template>
@@ -200,6 +200,7 @@ import moment from 'moment'
 import BaseContent from 'components/BaseContent/BaseContent.vue'
 import { bindList } from 'src/api/BindApi'
 import { addContact } from 'src/api/ContactsApi'
+import { tagList } from 'src/api/TagApi'
 
 export default {
   components: {
@@ -303,19 +304,28 @@ export default {
       })
     },
     // 根据id获取标签名
-    getTagName (id) {
-      for (let i = 0; i < this.tagList.length; i++) {
-        if (this.tagList[i].id === id) {
-          return this.tagList[i].label
+    getTagName(list,id){
+      for (let i = 0; i < list.length; i++) {
+        if(list[i].id===id){
+          return list[i].label
+        }else if(list[i].children && list[i].children.length>0){
+          let res=this.getTagName(list[i].children,id)
+          if(res){
+            return res
+          }
         }
       }
     },
     // 根据id获取标签颜色
-    getTagColor (id) {
-      for (let i = 0; i < this.tagList.length; i++) {
-        if (this.tagList[i].id == id) {
-          let color = this.tagList[i].color
-          return color == null ? '#1976d2' : color
+    getTagColor (list,id) {
+      for (let i = 0; i < list.length; i++) {
+        if(list[i].id===id){
+          return list[i].color
+        }else if(list[i].children && list[i].children.length>0){
+          let res=this.getTagColor(list[i].children,id)
+          if(res){
+            return res
+          }
         }
       }
     },
@@ -490,16 +500,26 @@ export default {
           this.$error(res)
         }
       })
-    }
+    },
+    getTagsList () {
+      this.loading = true
+      tagList().then(res => {
+        if (res.data.type === 'success') {
+          this.tagList = res.data.data.data
+          this.getDataList()
+        }
+      })
+    },
   },
+
   created () {
     moment.locale('zh-cn')
     let tagId = this.$route.hash.slice(1)
     if (tagId) {
       this.searchTagId = tagId
     }
-    this.tagList = this.$global.tagList
-    this.getDataList()
+    // this.tagList = this.$global.tagList
+    this.getTagsList()
     this.getBindList()
 
   }

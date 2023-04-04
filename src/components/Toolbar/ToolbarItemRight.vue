@@ -96,6 +96,7 @@
 <script>
 import EmailBind from 'components/common/EmailBind.vue'
 import ReceiveRule from 'components/common/ReceiveRule.vue'
+import { logout } from 'src/api/UserApi'
 
 export default {
   name: 'ToolbarItemRight',
@@ -141,13 +142,20 @@ export default {
     },
 
     logout () {
-      this.$store.commit('LOGOUT')
-      this.$router.push('/')
-      window.sessionStorage.clear()
-      if (process.env.MODE === 'electron') {
-        this.$q.electron.remote.getCurrentWindow().setSize(500, 490)
-        this.$q.electron.remote.getCurrentWindow().center()
-      }
+      logout().then(res=>{
+        if(res.data.type == 'success'){
+          this.$store.commit('LOGOUT')
+          this.$router.push('/')
+          window.sessionStorage.clear()
+          if (process.env.MODE === 'electron') {
+            this.$q.electron.remote.getCurrentWindow().setSize(500, 490)
+            this.$q.electron.remote.getCurrentWindow().center()
+          }
+        } else {
+          this.$error(res)
+        }
+      })
+
     },
 
     // electron
