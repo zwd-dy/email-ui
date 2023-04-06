@@ -7,6 +7,9 @@
 // https://quasar.dev/quasar-cli/quasar-conf-js
 /* eslint-env node */
 // import langDe from 'quasar/lang/zh-hans'
+const Vue = require('vue')
+const url = "http://127.0.0.1:8080/"
+
 module.exports = function (/* ctx */) {
   return {
     // https://quasar.dev/quasar-cli/supporting-ts
@@ -47,7 +50,7 @@ module.exports = function (/* ctx */) {
 
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
-      publicPath: process.env.NODE_ENV === 'production' ? '/quasar-manage/' : '/',
+      // publicPath: process.env.NODE_ENV === 'production' ? '/quasar-manage/' : '/',
       vueRouterMode: 'hash', // available values: 'hash', 'history'
 
       // transpile: false,
@@ -86,13 +89,13 @@ module.exports = function (/* ctx */) {
       port: 8888,
       open: true, // opens browser window automatically
       proxy: {
-        // '/': {
-        //   target: 'http://127.0.0.1:8080/',
-        //   changeOrigin: true,
-        //   // pathRewrite: {
-        //   //   '^/api': ''
-        //   // }
-        // }
+        '/': {
+          target: url,
+          changeOrigin: true,
+          // pathRewrite: {
+          //   '^/api': ''
+          // }
+        }
       }
     },
 

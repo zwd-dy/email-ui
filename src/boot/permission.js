@@ -43,7 +43,7 @@ export default async ({ app, router, Vue, store }) => {
       if (constantRoutes.some((item) => { return item.path === to.path })) {
         next()
       } else {
-        next({ path: '/logon' })
+        next({ path: '/login' })
       }
     }
   })

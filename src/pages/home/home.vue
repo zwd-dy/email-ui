@@ -4,6 +4,7 @@
     <div class="container q-pa-lg q-col-gutter-md">
       <h2>你好，{{ user.username }}</h2>
       <h3>欢迎使用多邮件收发系统</h3>
+      <h4>点击右上角头像 - 邮箱绑定，即刻体验</h4>
     </div>
   </base-content>
 

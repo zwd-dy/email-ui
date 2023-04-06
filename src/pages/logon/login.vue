@@ -257,8 +257,8 @@ export default {
   data () {
     return {
       isPwd: true,
-      username: 'ding',
-      password: '1234',
+      username: '',
+      password: '',
       register: {
         sysUser: {
           username: '',
@@ -290,7 +290,8 @@ export default {
           this.register.confirmPassword = this.$getRsaCode(this.register.confirmPassword)
           register(this.register).then(res => {
             if (res.data.type == 'success') {
-              this.$success('注册成功')
+              this.$success('注册成功，请登录')
+              this.type = 0
             } else {
               this.$error(res)
             }

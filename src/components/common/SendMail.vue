@@ -26,7 +26,8 @@
             multiple
             input-debounce="0"
             @new-value="createValue"
-            label="收件人"
+            @input-value="createValue"
+            label="收件人，多个收件请用小写 ',' 和 ';' 隔开"
             :rules="[ val => val && val.length > 0 || '请输入收件人邮箱，多个用小写;隔开，回车确认']"
           >
             <template v-slot:append>
@@ -85,7 +86,8 @@
               <q-card-section>
                 <div class="text-h6">定时发送</div>
                 <div class="text-subtitle2">中国标准时间</div>
-                <div class="text-subtitle1">发送时间：<a style="color: #2f80ed;font-weight: bold;font-size: 20px"> {{ sendTime }}</a></div>
+                <div class="text-subtitle1">发送时间：<a style="color: #2f80ed;font-weight: bold;font-size: 20px">
+                  {{ sendTime }}</a></div>
               </q-card-section>
 
               <q-separator/>
@@ -269,8 +271,9 @@ export default {
           .forEach(v => {
             modelValue.push(v)
           })
-
-        done(null)
+        if (done) {
+          done(null)
+        }
         this.mail.recipients = modelValue
       }
     },
@@ -402,7 +405,11 @@ export default {
 
     // 发送邮件
     sendMailBtn () {
-      this.sendMail()
+      this.$refs.form.validate().then(success => {
+        if (success) {
+          this.sendMail()
+        }
+      })
     },
     // 定时发送邮件
     schedulerSendMail () {
@@ -476,9 +483,9 @@ export default {
 
       customInsert (res, insertFn) {
         //TODO
-        // var domain = location.href         // 正式环境
-        var domain = 'http://localhost:8081/static' // 开发环境q
-        var url = domain + res.data.relativePath
+        var domain = location.href         // 正式环境
+        // var domain = 'http://localhost:8081/static' // 开发环境q
+        var url = '/static' +  res.data.relativePath
 
         // 从 res 中找到 url alt href ，然后插入图片
         insertFn(url, res.data.id)

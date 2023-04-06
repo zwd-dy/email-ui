@@ -50,6 +50,7 @@
                 <div style="float: right">
                   <q-btn flat rounded color="black" label="取消" v-close-popup/>
                   <q-btn @click="unBindBtn(binds[i])" unelevated color="red" label="解绑" class="q-ml-sm"/>
+                  <q-btn @click="pullMailBtn(binds[i])" unelevated color="blue-6" label="同步邮件" class="q-ml-sm"/>
                   <q-btn @click="updateBindBtn(binds[i])" unelevated color="primary" label="保存更改" class="q-ml-sm"/>
                 </div>
               </q-form>
@@ -124,7 +125,7 @@
 </template>
 
 <script>
-import { bindList, addBind, deleteBind, updateBind } from 'src/api/BindApi'
+import { bindList, addBind, deleteBind, updateBind, pullMail } from 'src/api/BindApi'
 import { platformList } from 'src/api/PlatformApi'
 import { addContact, addGroup, batchDelContact } from 'src/api/ContactsApi'
 
@@ -190,7 +191,7 @@ export default {
     unBindBtn (bind) {
       this.$q.dialog({
         title: '提示',
-        message: '解绑邮箱 ' + bind.emailUser + ' 吗？',
+        message: '解绑邮箱 ' + bind.emailUser + ' 吗？（解绑后系统帮你存储的邮件将全部删除，请慎重操作）',
         cancel: true,
         persistent: true,
         ok: {
@@ -219,6 +220,26 @@ export default {
           this.$error(res)
         }
       })
+    },
+    // 同步邮件
+    pullMailBtn(bind){
+      this.$q.dialog({
+        title: '提示',
+        message: '同步邮箱账号 ' + bind.emailUser + ' 吗？',
+        cancel: true,
+        persistent: true,
+        ok: {
+          flat: true,
+          textColor: 'black'
+        }
+      }).onOk(() => {
+        pullMail(bind.id).then(res=>{
+          if(res.data.type!='success'){
+            this.$error(res)
+          }
+        })
+      })
+
     }
   },
   created () {

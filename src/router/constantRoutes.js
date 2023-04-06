@@ -3,12 +3,12 @@
  */
 const constantRoutes = [
   {
-    path: '/logon',
+    path: '/login',
     name: 'logon',
     meta: {
       title: '登录'
     },
-    component: () => import('../pages/logon/logon.vue')
+    component: () => import('../pages/logon/login.vue')
   },
   {
     path: '/NoFound404',

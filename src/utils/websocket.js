@@ -5,7 +5,8 @@ export default class SocketService {
    * 单例
    */
   static instance = null
-  url = 'ws://' + Vue.prototype.$baseIp + '/ws/'
+  // url = 'ws://' + Vue.prototype.$baseIp + '/ws/'
+  url = 'ws://' + window.location.host + '/ws/'
 
   static get Instance () {
     if (!this.instance) {

@@ -95,7 +95,7 @@ export default {
           name: 'subject',
           align: 'left',
           label: '主题',
-          field: 'subject',
+          field: row =>  row.subject.length > 20 ? row.subject.substring(0,20)+"..." : row.subject,
         }
         ,
         {

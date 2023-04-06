@@ -3,23 +3,11 @@
 
     <div class="container q-pa-lg q-col-gutter-md">
 
-      <div class="row q-col-gutter-xs">
-        <div class="row-4">
-          <q-input dense filled v-model="search.from" label="发件人"/>
-        </div>
-        <div class="col-4">
-          <q-input dense filled v-model="search.subject" label="主题"/>
-        </div>
-        <div class="col" style="margin-top: 3px;margin-left: 1em">
-          <q-btn dense icon="search" @click="getDataList"/>
-        </div>
-      </div>
-
       <div class="q-pa-md">
         <div v-if="!isRead">
           <q-table
             class="email-list"
-            title="邮件列表"
+            title="星标邮件"
             :data="emailList"
             :columns="columns"
             :pagination.sync="pagination"
@@ -35,8 +23,7 @@
               <q-td :props="props" style="max-width: 7rem">
                 <div>
                   {{ props.value }}
-                  <q-badge v-for="item in props.row.tagIds" :key="item"
-                           :style="{'background-color':getTagColor(tagList,item)}"
+                  <q-badge v-for="item in props.row.tagIds" :key="item" :style="{'background-color':getTagColor(tagList,item)}"
                            :label="getTagName(tagList,item)"/>
                 </div>
               </q-td>
@@ -59,10 +46,9 @@
                   <q-item-label style="margin-top: 1rem">
                     <p style="font-size: 1.6em">
                       <q-icon name="markunread_mailbox"/>
-                      收件列表
+                      星标邮件
                     </p>
                   </q-item-label>
-
                 </div>
 
                 <div class="row q-col-gutter-sm">
@@ -151,7 +137,7 @@
           </q-table>
         </div>
 
-        <!--        邮件详情-->
+<!--        邮件详情-->
         <div v-else>
           <q-card>
             <q-card-section style="box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.3);background: #d7e7f7">
@@ -170,7 +156,7 @@
                 </q-tooltip>
               </q-btn>
               <!--              星标按钮-->
-              <q-btn v-if="currentEmail.isStar != 1" icon="star_border" @click="addStar(currentEmail)" flat round dense>
+              <q-btn v-if="currentEmail.isStar != 1"  icon="star_border" @click="addStar(currentEmail)" flat round dense>
                 <q-tooltip :offset="[10, 10]">
                   添加星标
                 </q-tooltip>
@@ -222,7 +208,7 @@ export default {
     BaseContent,
     pageListEmail
   },
-  name: 'receive-mail',
+  name: 'star-mail',
   data () {
     return {
       isRead: false,
@@ -233,10 +219,6 @@ export default {
       tagList: [],
       searchTagId: null,
       currentEmail: {},
-      search: {
-        from: '',
-        subject: ''
-      },
       mail: {
         bindId: null
       },
@@ -246,7 +228,7 @@ export default {
           required: true,
           label: '发件人',
           align: 'left',
-          field: row => row.formName + '(' + row.from + ')',
+          field: 'from',
         },
         {
           name: 'subject',
@@ -285,9 +267,10 @@ export default {
         pageNum: this.pagination.page,
         pageSize: this.pagination.rowsPerPage,
         type: 1,
+        isStar:1,
         bindId: this.mail.bindId,
-        tagIds: this.searchTagId,
-      }, this.search)).then(res => {
+        tagIds: this.searchTagId
+      })).then(res => {
         this.emailList = res.data.data.pageData
         this.pagination.rowsNumber = res.data.data.totalNum
       }).finally(a => {
@@ -323,26 +306,26 @@ export default {
       })
     },
     // 根据id获取标签名
-    getTagName (list, id) {
+    getTagName(list,id){
       for (let i = 0; i < list.length; i++) {
-        if (list[i].id === id) {
+        if(list[i].id===id){
           return list[i].label
-        } else if (list[i].children && list[i].children.length > 0) {
-          let res = this.getTagName(list[i].children, id)
-          if (res) {
+        }else if(list[i].children && list[i].children.length>0){
+          let res=this.getTagName(list[i].children,id)
+          if(res){
             return res
           }
         }
       }
     },
     // 根据id获取标签颜色
-    getTagColor (list, id) {
+    getTagColor (list,id) {
       for (let i = 0; i < list.length; i++) {
-        if (list[i].id === id) {
+        if(list[i].id===id){
           return list[i].color
-        } else if (list[i].children && list[i].children.length > 0) {
-          let res = this.getTagColor(list[i].children, id)
-          if (res) {
+        }else if(list[i].children && list[i].children.length>0){
+          let res=this.getTagColor(list[i].children,id)
+          if(res){
             return res
           }
         }
@@ -481,9 +464,9 @@ export default {
     },
     // 为邮件添加星标
     addStar (item) {
-      let value
+      let value;
       let arr = []
-      if (item) {
+      if(item){
         arr.push(item)
         value = arr
       } else {
@@ -494,7 +477,7 @@ export default {
         if (res.data.type == 'success') {
           this.$success('操作成功')
           this.getDataList()
-          if (item) item.isStar = 1
+          if(item) item.isStar = 1
         } else {
           this.$error(res)
         }
@@ -502,9 +485,9 @@ export default {
     },
     // 为邮件清除星标
     delStar (item) {
-      let value
+      let value;
       let arr = []
-      if (item) {
+      if(item){
         arr.push(item)
         value = arr
       } else {
@@ -514,7 +497,7 @@ export default {
         if (res.data.type == 'success') {
           this.$success('操作成功')
           this.getDataList()
-          if (item) item.isStar = 0
+          if(item) item.isStar = 0
         } else {
           this.$error(res)
         }

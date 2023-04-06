@@ -43,7 +43,7 @@ axios.interceptors.response.use(
   },
   error => {
     const defaultNotify = {
-      message: '未知错误',
+      message: '未登录',
       icon: 'warning',
       color: 'warning',
       position: 'top',

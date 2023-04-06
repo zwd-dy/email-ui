@@ -76,6 +76,9 @@
                   <div class="row">
                     <q-btn color="primary" :disable="loading" icon="add" @click="dialog.addContact = true"/>
                   </div>
+                  <div class="row">
+                    <q-btn color="white" text-color="black" :disable="loading" icon="refresh" @click="getDataList"/>
+                  </div>
 
                   <div class="row" v-if="selected.length > 0">
                     <q-btn color="red" :disable="loading" icon="delete" @click="delContactBtn"/>

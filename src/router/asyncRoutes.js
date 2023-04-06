@@ -49,6 +49,17 @@ const asyncRoutesChildren = [
     component: () => import('../pages/email/receive.vue')
   },
   {
+    path: '/star',
+    name: 'star',
+    meta: {
+      roles: ['user', 'admin'],
+      title: '已加星标',
+      icon: 'grade',
+      keepAlive: true
+    },
+    component: () => import('../pages/email/star.vue')
+  },
+  {
     path: '/sent',
     name: 'sent',
     meta: {

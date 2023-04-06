@@ -85,7 +85,8 @@
               </div>
               <q-space/>
 
-              <q-select dense style="width: 12rem;" standout="bg-teal text-white" v-model="mail.bindId"
+              <q-btn color="white" text-color="black" :disable="loading" icon="refresh" @click="getTagsList"/>、
+              <q-select dense style="width: 12rem;margin-left: 1em" standout="bg-teal text-white" v-model="mail.bindId"
                         :options="binds"
                         label="选择邮箱..."
                         option-value="id"
@@ -175,7 +176,7 @@ export default {
           name: 'subject',
           align: 'left',
           label: '主题',
-          field: 'subject',
+          field: row =>  row.subject.length > 20 ? row.subject.substring(0,20)+"..." : row.subject,
         }
         ,
         {

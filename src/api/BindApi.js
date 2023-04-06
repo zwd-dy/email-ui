@@ -34,3 +34,10 @@ export function deleteBind (id) {
     responseType: 'json',
   })
 }
+export function pullMail (id) {
+  return _axios({
+    url: Vue.prototype.$PUBLIC_PATH + 'user/platform/pullMail/'+id,
+    method: 'post',
+    responseType: 'json',
+  })
+}
